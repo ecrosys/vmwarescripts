@@ -1,0 +1,6 @@
+Update older releases of production servers using VMware ESXi 6.7.0 U3 to latest build on the same version.
+This specific script applies only in this scene, update from Image 6.0.7-201908020001 (U3) to 6.0.7-202210001, 
+latest patch currently available (OCT 2022), and appliying a security script from 2023.
+Ref: https://docs.vmware.com/en/VMware-vSphere/6.7/rn/esxi670-202210001.html and https://kb.vmware.com/s/article/76372
+
+
