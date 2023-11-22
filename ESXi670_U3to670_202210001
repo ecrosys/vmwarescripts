@@ -1,6 +1,101 @@
-Update older releases of production servers using VMware ESXi 6.7.0 U3 to latest build on the same version.
-This specific script applies only in this scene, update from Image 6.0.7-201908020001 (U3) to 6.0.7-202210001, 
-latest patch currently available (OCT 2022), and appliying a security script from 2023.
-Ref: https://docs.vmware.com/en/VMware-vSphere/6.7/rn/esxi670-202210001.html and https://kb.vmware.com/s/article/76372
+# Objective: improve / hardening the cibersecurity for VMware 6.7 by patching and fixing specific service, as a first step.
 
+# Update older releases of production servers using VMware ESXi 6.7.0 U3 or older to latest build on the same version 6.7.
+# this specific script applies only in this scene, update from Image 6.0.7-201908020001 U3 or older, to 6.0.7-202210001, 
+# using latest patch currently available from VMware, a patch dated from OCT 2022, and appliying a measure in service SLP
+# following a suggestion by VMware in 2023.
+# Ref: https://docs.vmware.com/en/VMware-vSphere/6.7/rn/esxi670-202210001.html and https://kb.vmware.com/s/article/76372
 
+# AUTOR: ecrosys 2023-10-17
+# Note: feel free to update and customized this script for your needs
+# Requirements: you must have the following files previosly located in your c:\temp
+#   ESXi670-202210001.zip (Available from www.vmware.com)
+#   plink.exe (https://www.chiark.greenend.org.uk/~sgtatham/putty/latest.html)
+#   pscp.exe (same)
+#   putty.exe (same)
+
+# ESXi server details
+$ESXI_HOST = "your ip address"
+$SSH_USERNAME = "root"
+$SSH_PASSWORD = "your password"
+
+# Backup destination path on your local machine
+$BACKUP_DESTINATION = "C:\Temp"
+
+# Path to plink.exe (PuTTY's command-line SSH client)
+$PLINK_PATH = "C:\Temp\plink.exe"
+
+# Path to pscp.exe (PuTTY's SCP client)
+$PSCP_PATH = "C:\Temp\pscp.exe"
+
+# SSH command to create a config sync using plink
+$SSHCommandA = "$PLINK_PATH -ssh -batch $ESXI_HOST -l $SSH_USERNAME -pw $SSH_PASSWORD 'vim-cmd hostsvc/firmware/sync_config'"
+
+# Wait for a moment to ensure the sync operation completes (you can adjust the duration as needed)
+Start-Sleep -Seconds 5
+
+# Execute SSH command to generate the backup file
+Invoke-Expression -Command $SSHCommandA
+
+# SSH command to create a backup using plink
+$SSHCommandB = "$PLINK_PATH -ssh -batch $ESXI_HOST -l $SSH_USERNAME -pw $SSH_PASSWORD 'vim-cmd hostsvc/firmware/backup_config'"
+
+# Wait for a moment to ensure the backup operation completes (you can adjust the duration as needed)
+Start-Sleep -Seconds 10
+
+# Execute SSH command to generate the backup file
+Invoke-Expression -Command $SSHCommandB
+
+# Remote command to create a tarball of the backup files
+$RemoteCommand = "cd /scratch/downloads/ && tar czf $ESXI_HOST.tar.gz ./"
+
+# Execute remote command using plink
+$PLINKCommand = "$PLINK_PATH -ssh -batch $SSH_USERNAME@$ESXI_HOST -pw $SSH_PASSWORD '$RemoteCommand'"
+
+# Invoke the remote command to create the tarball
+Invoke-Expression -Command $PLINKCommand
+
+# Remote path to the compressed tarball on the ESXi server
+$REMOTE_TARBALL_PATH = "/scratch/downloads/$ESXI_HOST.tar.gz"
+
+# SCP command to copy the tarball from the ESXi server to your local machine
+$SCPCommand = "${PSCP_PATH} -l ${SSH_USERNAME} -pw ${SSH_PASSWORD} ${SSH_USERNAME}@${ESXI_HOST}:${REMOTE_TARBALL_PATH} ${BACKUP_DESTINATION}"
+
+# Execute SCP command to copy the backup file
+Invoke-Expression -Command $SCPCommand
+
+Write-Output "Backup completed successfully and saved to $BACKUP_DESTINATION"
+
+# UPGRADE PROCESSES
+# Local path to the compressed ZIP for the upgrade
+$LOCAL_ZIP_PATH = "C:\Temp\ESXi670-202210001.zip"
+
+# Remote path to copy the ZIP on the ESXi server
+$REMOTE_ZIP_PATH = "/var/tmp/"
+
+# SCP command to copy the ZIP from the local machine to the ESXi server
+$SCPCommandB = "${PSCP_PATH} -l ${SSH_USERNAME} -pw ${SSH_PASSWORD} ${LOCAL_ZIP_PATH} ${SSH_USERNAME}@${ESXI_HOST}:'${REMOTE_ZIP_PATH}'"
+
+# Execute SCP command to copy the backup file
+Invoke-Expression -Command $SCPCommandB
+
+# Remote command to enter the ESXi in maintenance mode
+$RemoteCommandB = "esxcli system maintenanceMode set --enable true"
+
+# Execute remote command using plink
+$PLINKCommandB = "$PLINK_PATH -ssh -batch $SSH_USERNAME@$ESXI_HOST -pw $SSH_PASSWORD '$RemoteCommandB'"
+
+# Invoke the remote command to create the tarball
+Invoke-Expression -Command $PLINKCommandB
+
+# Wait for a moment to ensure the operation completes (you can adjust the duration as needed)
+Start-Sleep -Seconds 10
+
+# Remote command to update the ESXi to 20221004001-standar image
+$RemoteCommandC = "esxcli software profile update -p ESXi-6.7.0-20221004001-standard -d /var/tmp/ESXi670-202210001.zip"
+
+# Execute remote command using plink
+$PLINKCommandC = "$PLINK_PATH -ssh $SSH_USERNAME@$ESXI_HOST -pw $SSH_PASSWORD '$RemoteCommandC'"
+
+# Invoke the remote command to create the tarball
+Invoke-Expression -Command $PLINKCommandC
