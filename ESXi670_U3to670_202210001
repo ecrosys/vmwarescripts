@@ -8,7 +8,8 @@
 
 # AUTOR: ecrosys 2023-10-17
 # Note: feel free to update and customized this script for your needs
-# Requirements: you must have the following files previosly located in your c:\temp
+# Requirements: Windows 10, PowerShell, network acces to the ESXi host. 
+# You must have the following files previosly located in your c:\temp:
 #   ESXi670-202210001.zip (Available from www.vmware.com)
 #   plink.exe (https://www.chiark.greenend.org.uk/~sgtatham/putty/latest.html)
 #   pscp.exe (same)
