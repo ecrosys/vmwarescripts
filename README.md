@@ -1,41 +1,34 @@
 # VMware ESXi Scripts
 
-PowerShell scripts for patching, updating and hardening VMware ESXi 6.7 servers.
+PowerShell scripts for patching, updating and hardening VMware ESXi hosts.
 
-## CybSec_ESXi670to670_202210001
+## Scripts
 
-Script that automates the update of ESXi 6.7.0 U3 (or older builds) to build **6.7.0-202210001** (October 2022 patch), including a security hardening step for the SLP service.
+### CybSec_ESXi670to670_202210001.ps1
 
-### What it does
+Located at `scripts/CybSec_ESXi670to670_202210001.ps1`.
 
-1. **Backup** - Syncs and backs up the ESXi host configuration via SSH
-2. **Download backup** - Compresses and copies the backup to your local machine via SCP
-3. **Upload patch** - Transfers the update ZIP to the ESXi host
-4. **Maintenance mode** - Puts the host in maintenance mode
-5. **Update** - Applies the ESXi-6.7.0-20221004001-standard profile
+Automates the update of ESXi 6.7.0 U3 (or older builds) to build **6.7.0-202210001** (October 2022 patch), including security-hardening steps.
 
-### Requirements
+The original file `CybSec_ESXi670to670_202210001` is intentionally retained in the repository root.
 
-- Windows 10 with PowerShell
-- Network access to the ESXi host (SSH enabled)
-- The following files in `C:\Temp`:
-  - `ESXi670-202210001.zip` (from [VMware](https://www.vmware.com))
-  - `plink.exe`, `pscp.exe`, `putty.exe` (from [PuTTY](https://www.chiark.greenend.org.uk/~sgtatham/putty/latest.html))
+### PermanentDisableSLP_Service.ps1
 
-### Usage
+Located at `scripts/PermanentDisableSLP_Service.ps1`.
 
-1. Edit the script and set your ESXi host IP and credentials
-2. Place all required files in `C:\Temp`
-3. Run from PowerShell:
+Placeholder for a script intended to permanently disable the SLP service on VMware ESXi hosts as part of a security-hardening process.
 
-```powershell
-.\CybSec_ESXi670to670_202210001
-```
+## Requirements
 
-### References
+- Windows with PowerShell
+- Network access to the ESXi host
+- SSH enabled on the ESXi host where required
+- PuTTY command-line utilities where required by the script
 
-- [ESXi 6.7 Patch Release Notes](https://docs.vmware.com/en/VMware-vSphere/6.7/rn/esxi670-202210001.html)
-- [VMware KB 76372 - SLP Service](https://kb.vmware.com/s/article/76372)
+## References
+
+- VMware ESXi 6.7 patch documentation
+- VMware guidance related to the SLP service
 
 ## License
 
